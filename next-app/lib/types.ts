@@ -13,7 +13,7 @@ export interface Product {
   title: string
   description: string
   price: number
-  category: "Textbooks" | "Electronics" | "Furniture" | "Clothing" | "Accessories" | "Dorm Essentials" | "Sports" | "Event Tickets" | "Other"
+  category: "Textbooks" | "Electronics" | "Furniture" | "Clothing" | "Accessories" | "Dorm Essentials" | "Sports" | "Event Tickets" | "Services" | "Other"
   condition: string
   imageUrl: string
   timestamp: string

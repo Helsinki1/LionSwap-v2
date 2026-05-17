@@ -24,6 +24,7 @@ function getCategoryName(slug: string): string {
     "Dorm": "Dorm Essentials", // This is the critical mapping
     "Sports": "Sports",
     "Tickets": "Event Tickets",
+    "Services": "Services",
     "Other": "Other"
   };
   
@@ -41,6 +42,7 @@ function getDisplayName(slug: string): string {
     "Dorm": "Dorm Essentials",
     "Sports": "Sports",
     "Tickets": "Event Tickets",
+    "Services": "Services",
     "Other": "Other"
   };
   
