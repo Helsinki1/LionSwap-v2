@@ -3,22 +3,14 @@ from flask_cors import cross_origin
 from werkzeug.security import check_password_hash, generate_password_hash
 from flask_jwt_extended import create_access_token
 from models import User, db
-import random, traceback, os, base64, requests
-from email.mime.text import MIMEText
+import random, traceback, os
+import resend
 from dotenv import load_dotenv
-
-# Google API imports
-from google.oauth2.credentials import Credentials
-from googleapiclient.discovery import build
-from google.auth.transport.requests import Request
 
 load_dotenv()
 
-# Load from environment
-CLIENT_ID = os.getenv("GMAIL_CLIENT_ID")
-CLIENT_SECRET = os.getenv("GMAIL_CLIENT_SECRET")
-REFRESH_TOKEN = os.getenv("GMAIL_REFRESH_TOKEN")
-USER_EMAIL = os.getenv("GMAIL_USER")
+resend.api_key = os.getenv("RESEND_API_KEY")
+FROM_EMAIL = os.getenv("RESEND_FROM_EMAIL", "noreply@lion-swap.com")
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -102,49 +94,10 @@ def signup():
     return jsonify({"message": "Signup Successful", "token": token}), 201
 
 
-# ------------ GMAIL API ----------------
-creds = Credentials(
-    token=None,
-    refresh_token=REFRESH_TOKEN,
-    token_uri='https://oauth2.googleapis.com/token',
-    client_id=CLIENT_ID,
-    client_secret=CLIENT_SECRET
-)
-# Force initial token fetch
-creds.refresh(Request())
-# Build Gmail API service
-service = build('gmail', 'v1', credentials=creds)
-
-
-def create_message(sender, to, subject, message_text):
-    message = MIMEText(message_text)
-    message['to'] = to
-    message['from'] = sender
-    message['subject'] = subject
-    raw = base64.urlsafe_b64encode(message.as_bytes()).decode()
-    return {'raw': raw}
-
-
 def send_email(to, subject, body):
-    # Refresh token if expired before each send
-    if not creds.valid or creds.expired:
-        creds.refresh(Request())
-    message = create_message(USER_EMAIL, to, subject, body)
-    sent_message = service.users().messages().send(userId="me", body=message).execute()
-    print(f"Message sent! ID: {sent_message['id']}")
-
-
-def get_access_token():
-    response = requests.post(
-        'https://oauth2.googleapis.com/token',
-        data={
-            'client_id': CLIENT_ID,
-            'client_secret': CLIENT_SECRET,
-            'refresh_token': REFRESH_TOKEN,
-            'grant_type': 'refresh_token',
-        }
-    )
-    if response.ok:
-        return response.json()['access_token']
-    else:
-        raise Exception(f"Failed to refresh token: {response.text}")
+    resend.Emails.send({
+        "from": FROM_EMAIL,
+        "to": [to],
+        "subject": subject,
+        "text": body,
+    })
